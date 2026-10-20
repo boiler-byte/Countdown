@@ -3,1078 +3,763 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Countdown Tool</title>
+<title>Neon Countdowns</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
   :root {
-    --neon-cyan: #00f0ff;
-    --neon-magenta: #ff00e5;
-    --neon-purple: #9d00ff;
-    --bg: #050510;
-    --bg-card: #0d0d1a;
-    --text: #e0e0f0;
+    --bg: #0a0a12;
+    --panel: #12121e;
+    --neon: #00f0ff;
+    --neon2: #ff00e6;
+    --neon3: #7cff00;
+    --text: #e0e6ff;
+    --muted: #7a7f9a;
   }
-  
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(circle at 20% 10%, #1a0033 0%, #0a0a12 40%, #000 100%);
     color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
-    background-image: 
-      radial-gradient(circle at 20% 30%, rgba(157, 0, 255, 0.15), transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(0, 240, 255, 0.12), transparent 40%),
-      radial-gradient(circle at 50% 50%, rgba(255, 0, 229, 0.08), transparent 50%);
-    background-attachment: fixed;
   }
-  
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: 
-      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.02) 2px, rgba(0,240,255,0.02) 4px);
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(2px 2px at 20% 30%, rgba(0,240,255,.5), transparent),
+      radial-gradient(2px 2px at 70% 60%, rgba(255,0,230,.5), transparent),
+      radial-gradient(1px 1px at 40% 80%, rgba(124,255,0,.4), transparent),
+      radial-gradient(1px 1px at 85% 20%, rgba(0,240,255,.4), transparent);
     pointer-events: none;
-    z-index: 1;
-    animation: scanline 8s linear infinite;
+    animation: twinkle 6s infinite alternate;
+    z-index: 0;
   }
-  
-  @keyframes scanline {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(4px); }
-  }
-  
-  .container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 30px 20px;
-    position: relative;
-    z-index: 2;
-  }
-  
+  @keyframes twinkle { from { opacity: .4; } to { opacity: 1; } }
+
+  .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 24px; }
+
   header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
   }
-  
   h1 {
-    font-size: 2.2rem;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-purple));
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shine 4s linear infinite;
+    font-size: 2rem; margin: 0;
+    background: linear-gradient(90deg, var(--neon), var(--neon2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 30px rgba(0,240,255,.3);
     letter-spacing: 2px;
-    text-transform: uppercase;
-    filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.4));
   }
-  
-  @keyframes shine {
-    to { background-position: 200% center; }
-  }
-  
   .add-btn {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: 2px solid var(--neon-cyan);
-    background: rgba(0, 240, 255, 0.05);
-    color: var(--neon-cyan);
-    font-size: 2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    box-shadow: 0 0 15px rgba(0,240,255,0.3), inset 0 0 10px rgba(0,240,255,0.1);
-    animation: pulseBtn 2.5s ease-in-out infinite;
-    line-height: 1;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: transparent; color: var(--neon);
+    border: 2px solid var(--neon);
+    font-size: 2rem; line-height: 1; cursor: pointer;
+    box-shadow: 0 0 12px var(--neon), inset 0 0 12px rgba(0,240,255,.2);
+    transition: transform .2s, box-shadow .2s;
+    display: none; align-items: center; justify-content: center;
   }
-  
-  .add-btn:hover {
-    background: rgba(0, 240, 255, 0.15);
-    transform: scale(1.1) rotate(90deg);
-    box-shadow: 0 0 30px rgba(0,240,255,0.6), inset 0 0 15px rgba(0,240,255,0.3);
-  }
-  
-  @keyframes pulseBtn {
-    0%, 100% { box-shadow: 0 0 15px rgba(0,240,255,0.3), inset 0 0 10px rgba(0,240,255,0.1); }
-    50% { box-shadow: 0 0 25px rgba(0,240,255,0.6), inset 0 0 15px rgba(0,240,255,0.2); }
-  }
-  
-  /* Dialog */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
+  .add-btn:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 0 24px var(--neon); }
+  .add-btn.visible { display: flex; }
+
+  /* Form */
+  .form-panel {
+    background: rgba(18,18,30,.85);
+    border: 1px solid rgba(0,240,255,.25);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 0 30px rgba(0,240,255,.08), inset 0 0 30px rgba(0,240,255,.03);
+    margin-bottom: 32px;
     backdrop-filter: blur(6px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 20px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
+    animation: fadeIn .4s ease;
   }
-  
-  .overlay.active {
-    opacity: 1;
-    pointer-events: all;
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  .form-panel.hidden { display: none; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  input[type="text"], input[type="datetime-local"] {
+    background: #0a0a14; color: var(--text);
+    border: 1px solid #2a2a44; border-radius: 10px;
+    padding: 12px 14px; font-size: 1rem; outline: none;
+    transition: border-color .2s, box-shadow .2s;
   }
-  
-  .dialog {
-    background: var(--bg-card);
-    border: 2px solid var(--neon-cyan);
-    border-radius: 16px;
-    padding: 30px;
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 0 40px rgba(0,240,255,0.3), inset 0 0 30px rgba(157,0,255,0.05);
-    position: relative;
-    animation: dialogIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,240,255,.4); }
+
+  /* Switch */
+  .switch-row { display: flex; align-items: center; gap: 12px; }
+  .switch { position: relative; width: 52px; height: 28px; flex: 0 0 auto; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; cursor: pointer; border-radius: 28px;
+    background: #1e1e30; border: 1px solid #333; transition: .3s;
   }
-  
-  @keyframes dialogIn {
-    from { transform: scale(0.85); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+  .slider::before {
+    content: ""; position: absolute; height: 20px; width: 20px; left: 3px; top: 3px;
+    background: #888; border-radius: 50%; transition: .3s;
   }
-  
-  .dialog h2 {
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    color: var(--neon-cyan);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(0,240,255,0.6);
+  .switch input:checked + .slider {
+    background: rgba(0,240,255,.2); border-color: var(--neon);
+    box-shadow: 0 0 12px rgba(0,240,255,.5);
   }
-  
-  .form-group {
-    margin-bottom: 18px;
+  .switch input:checked + .slider::before {
+    transform: translateX(24px); background: var(--neon);
+    box-shadow: 0 0 10px var(--neon);
   }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--neon-magenta);
-    opacity: 0.9;
+
+  /* Dropzone */
+  .dropzone {
+    border: 2px dashed #2a2a44; border-radius: 12px; padding: 24px;
+    text-align: center; color: var(--muted); cursor: pointer;
+    transition: border-color .2s, background .2s; position: relative; min-height: 90px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   }
-  
-  .form-group input[type="text"],
-  .form-group input[type="datetime-local"] {
-    width: 100%;
-    padding: 12px 14px;
-    background: rgba(0,0,0,0.5);
-    border: 1px solid rgba(0,240,255,0.3);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 1rem;
-    font-family: inherit;
-    transition: all 0.2s;
-    color-scheme: dark;
+  .dropzone.drag { border-color: var(--neon2); background: rgba(255,0,230,.06); box-shadow: 0 0 20px rgba(255,0,230,.3); }
+  .dropzone img.preview { max-height: 120px; border-radius: 8px; box-shadow: 0 0 16px rgba(0,240,255,.4); }
+
+  button.primary {
+    background: linear-gradient(90deg, var(--neon), var(--neon2));
+    color: #050510; font-weight: 700; font-size: 1rem;
+    border: none; border-radius: 10px; padding: 14px 28px; cursor: pointer;
+    letter-spacing: 1px; text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(0,240,255,.4);
+    transition: transform .15s, box-shadow .2s;
   }
-  
-  .form-group input:focus {
-    outline: none;
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 15px rgba(0,240,255,0.4);
+  button.primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(255,0,230,.6); }
+  button.ghost {
+    background: transparent; color: var(--muted); border: 1px solid #2a2a44;
+    border-radius: 10px; padding: 14px 20px; cursor: pointer; transition: color .2s, border-color .2s;
   }
-  
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  
-  /* Image drop zone */
-  .drop-zone {
-    border: 2px dashed rgba(0,240,255,0.4);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #888;
-    font-size: 0.9rem;
-    position: relative;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .drop-zone.dragover {
-    border-color: var(--neon-magenta);
-    background: rgba(255,0,229,0.05);
-    box-shadow: 0 0 20px rgba(255,0,229,0.3);
-  }
-  
-  .drop-zone img {
-    max-width: 100%;
-    max-height: 120px;
-    border-radius: 6px;
-    box-shadow: 0 0 15px rgba(0,240,255,0.4);
-  }
-  
-  .drop-zone .hint {
-    font-size: 0.75rem;
-    opacity: 0.6;
-  }
-  
-  /* Toggle */
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  
-  .toggle {
-    position: relative;
-    width: 52px;
-    height: 28px;
-    flex-shrink: 0;
-  }
-  
-  .toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  .toggle .slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background: rgba(255,255,255,0.1);
-    border-radius: 30px;
-    border: 1px solid rgba(0,240,255,0.3);
-    transition: 0.3s;
-  }
-  
-  .toggle .slider::before {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    left: 3px;
-    top: 3px;
-    background: #888;
-    border-radius: 50%;
-    transition: 0.3s;
-  }
-  
-  .toggle input:checked + .slider {
-    background: rgba(0,240,255,0.2);
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 15px rgba(0,240,255,0.5);
-  }
-  
-  .toggle input:checked + .slider::before {
-    transform: translateX(24px);
-    background: var(--neon-cyan);
-    box-shadow: 0 0 10px var(--neon-cyan);
-  }
-  
-  .dialog-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-  }
-  
-  .btn {
-    flex: 1;
-    padding: 14px;
-    border-radius: 8px;
-    border: none;
-    font-family: inherit;
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .btn-primary {
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
-    color: #000;
-    box-shadow: 0 0 20px rgba(0,240,255,0.4);
-  }
-  
-  .btn-primary:hover {
-    box-shadow: 0 0 35px rgba(0,240,255,0.7);
-    transform: translateY(-2px);
-  }
-  
-  .btn-secondary {
-    background: transparent;
-    border: 1px solid rgba(255,0,229,0.5);
-    color: var(--neon-magenta);
-  }
-  
-  .btn-secondary:hover {
-    background: rgba(255,0,229,0.1);
-    box-shadow: 0 0 20px rgba(255,0,229,0.3);
-  }
-  
-  /* Countdown grid */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 24px;
-    margin-top: 20px;
-  }
-  
+  button.ghost:hover { color: var(--text); border-color: var(--neon); }
+  .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+
+  /* Countdown cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
   .card {
-    background: var(--bg-card);
-    border: 1px solid rgba(0,240,255,0.25);
-    border-radius: 16px;
-    overflow: hidden;
-    position: relative;
-    transition: all 0.3s;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    animation: cardIn 0.5s ease backwards;
+    background: rgba(18,18,30,.9);
+    border: 1px solid rgba(0,240,255,.2);
+    border-radius: 18px; overflow: hidden; position: relative;
+    box-shadow: 0 0 24px rgba(0,240,255,.06);
+    transition: transform .2s, box-shadow .3s;
+    display: flex; flex-direction: column;
   }
-  
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  .card:hover { box-shadow: 0 0 36px rgba(255,0,230,.2); }
+  .card .thumb {
+    width: 100%; height: 160px; object-fit: cover;
+    background: #08080f; display: block;
+    border-bottom: 1px solid rgba(0,240,255,.15);
   }
-  
-  .card:hover {
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 30px rgba(0,240,255,0.25);
-    transform: translateY(-4px);
+  .card .body { padding: 18px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .card .title-row { display: flex; align-items: flex-start; gap: 8px; }
+  .card h2 { margin: 0; font-size: 1.25rem; color: #fff; flex: 1; word-break: break-word; }
+  .card .repeat-badge {
+    font-size: .65rem; padding: 3px 8px; border-radius: 999px;
+    background: rgba(124,255,0,.15); color: var(--neon3);
+    border: 1px solid rgba(124,255,0,.4); white-space: nowrap; text-transform: uppercase;
   }
-  
-  .card.expired {
-    border-color: rgba(255,0,229,0.5);
-    animation: cardIn 0.5s ease backwards, expiredPulse 2s ease-in-out infinite;
-  }
-  
-  @keyframes expiredPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(255,0,229,0.3); }
-    50% { box-shadow: 0 0 40px rgba(255,0,229,0.6); }
-  }
-  
-  .card-img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    display: block;
-    filter: brightness(0.75) saturate(1.2);
-    transition: filter 0.3s;
-  }
-  
-  .card:hover .card-img {
-    filter: brightness(0.9) saturate(1.4);
-  }
-  
-  .card-img-placeholder {
-    width: 100%;
-    height: 160px;
-    background: linear-gradient(135deg, #0a0a1a, #1a0a2a, #0a0a1a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    opacity: 0.5;
-  }
-  
-  .card-content {
-    padding: 18px;
-  }
-  
-  .card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: var(--neon-cyan);
-    text-shadow: 0 0 8px rgba(0,240,255,0.5);
-    word-break: break-word;
-  }
-  
-  .card-dates {
-    font-size: 0.75rem;
-    color: #888;
-    margin-bottom: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  
-  .repeat-badge {
-    display: inline-block;
-    font-size: 0.65rem;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: rgba(157,0,255,0.2);
-    border: 1px solid rgba(157,0,255,0.5);
-    color: #c080ff;
-    margin-top: 4px;
-    width: fit-content;
-  }
-  
-  /* Countdown display */
-  .countdown {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    margin: 14px 0;
-  }
-  
-  .cd-unit {
-    text-align: center;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(0,240,255,0.2);
-    border-radius: 8px;
-    padding: 8px 4px;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .cd-unit::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-    opacity: 0.6;
-  }
-  
-  .cd-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: #fff;
-    text-shadow: 0 0 10px var(--neon-cyan);
-    line-height: 1;
-  }
-  
-  .cd-label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #888;
-    margin-top: 4px;
-  }
-  
-  .expired-label {
-    text-align: center;
-    font-size: 1.4rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    color: var(--neon-magenta);
-    text-shadow: 0 0 15px var(--neon-magenta);
-    padding: 20px 0;
-    animation: expiredText 1.5s ease-in-out infinite;
-  }
-  
-  @keyframes expiredText {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-  
-  /* Progress bar */
+  .card .meta { font-size: .75rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+  .card .clock { font-size: 2.1rem; font-weight: 700; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+  .card .clock small { font-size: .8rem; color: var(--muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
+  .card .status { font-size: 1.6rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .card .status.waiting { color: var(--neon); text-shadow: 0 0 14px rgba(0,240,255,.7); animation: pulse 2s infinite; }
+  .card .status.expired { color: var(--neon2); text-shadow: 0 0 14px rgba(255,0,230,.7); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
   .progress-wrap {
-    height: 6px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 10px;
-    position: relative;
+    height: 8px; background: #1a1a2c; border-radius: 999px; overflow: hidden; position: relative;
   }
-  
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-purple));
+  .progress-fill {
+    height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--neon), var(--neon2), var(--neon3));
     background-size: 200% 100%;
-    border-radius: 3px;
-    transition: width 1s linear;
-    animation: progressShine 3s linear infinite;
-    box-shadow: 0 0 10px var(--neon-cyan);
+    animation: flow 2s linear infinite;
+    box-shadow: 0 0 12px var(--neon);
+    transition: width .3s linear;
   }
-  
-  @keyframes progressShine {
-    to { background-position: 200% 0; }
+  @keyframes flow { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+  .card .del {
+    position: absolute; top: 10px; right: 10px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(0,0,0,.6); color: #fff; border: 1px solid rgba(255,0,230,.5);
+    cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .2s, box-shadow .2s;
   }
-  
-  .card-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 14px;
-  }
-  
-  .icon-btn {
-    flex: 1;
-    padding: 8px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(0,240,255,0.2);
-    border-radius: 6px;
-    color: #aaa;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
-  
-  .icon-btn:hover {
-    background: rgba(0,240,255,0.1);
-    color: var(--neon-cyan);
-    border-color: var(--neon-cyan);
-  }
-  
-  .icon-btn.danger:hover {
-    background: rgba(255,0,229,0.1);
-    color: var(--neon-magenta);
-    border-color: var(--neon-magenta);
-  }
-  
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #555;
-    font-size: 1.1rem;
-  }
-  
-  @media (max-width: 500px) {
-    h1 { font-size: 1.6rem; }
-    .row { grid-template-columns: 1fr; }
-    .grid { grid-template-columns: 1fr; }
-    .cd-value { font-size: 1.2rem; }
-  }
-  
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { 
-    background: linear-gradient(var(--neon-cyan), var(--neon-purple)); 
-    border-radius: 4px; 
-  }
+  .card:hover .del { opacity: 1; }
+  .card .del:hover { box-shadow: 0 0 12px var(--neon2); }
+
+  .empty { color: var(--muted); text-align: center; padding: 40px; grid-column: 1/-1; }
+  .time-left-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
 </style>
 </head>
 <body>
-
-<div class="container">
+<div class="wrap">
   <header>
-    <h1>Countdown</h1>
+    <h1>⏱ NEON COUNTDOWNS</h1>
     <button class="add-btn" id="addBtn" title="Neuen Countdown erstellen">+</button>
   </header>
-  <div class="grid" id="grid"></div>
-  <div class="empty-state" id="emptyState" style="display:none;">Noch keine Countdowns. Klicke auf + um zu starten.</div>
-</div>
 
-<!-- Dialog -->
-<div class="overlay" id="overlay">
-  <div class="dialog">
-    <h2 id="dialogTitle">Neuer Countdown</h2>
-    
-    <div class="form-group">
-      <label for="titleInput">Titel</label>
-      <input type="text" id="titleInput" value="Neuer Countdown" maxlength="80">
-    </div>
-    
-    <div class="row">
-      <div class="form-group">
-        <label for="startInput">Start</label>
-        <input type="datetime-local" id="startInput">
+  <!-- Formular -->
+  <section class="form-panel hidden" id="formPanel">
+    <form id="createForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="title">Titel</label>
+          <input type="text" id="title" required>
+        </div>
+        <div class="field">
+          <label for="start">Start</label>
+          <input type="datetime-local" id="start" required>
+        </div>
+        <div class="field">
+          <label for="end">Ende</label>
+          <input type="datetime-local" id="end" required>
+        </div>
+        <div class="field full">
+          <label>Bild (Auswahl, Drag&amp;Drop oder Strg+V)</label>
+          <div class="dropzone" id="dropzone" tabindex="0">
+            <span id="dropText">Klicken, Datei hierher ziehen oder Strg+V einfügen</span>
+          </div>
+        </div>
+        <div class="field full">
+          <div class="switch-row">
+            <label class="switch">
+              <input type="checkbox" id="repeat">
+              <span class="slider"></span>
+            </label>
+            <span>Wiederholung (täglich neu starten)</span>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="endInput">Ende</label>
-        <input type="datetime-local" id="endInput">
+      <div class="actions">
+        <button type="button" class="ghost" id="cancelBtn">Abbrechen</button>
+        <button type="submit" class="primary">Countdown erstellen</button>
       </div>
-    </div>
-    
-    <div class="form-group">
-      <label>Bild (Klick, Drag&amp;Drop oder Strg+V)</label>
-      <div class="drop-zone" id="dropZone">
-        <span id="dropText">Bild hierher ziehen, klicken oder Strg+V</span>
-        <span class="hint">wird als WebP-Thumbnail gespeichert</span>
-      </div>
-      <input type="file" id="fileInput" accept="image/*" hidden>
-    </div>
-    
-    <div class="toggle-row">
-      <label class="toggle">
-        <input type="checkbox" id="repeatInput">
-        <span class="slider"></span>
-      </label>
-      <span>Wiederholen (täglich nach Ablauf)</span>
-    </div>
-    
-    <div class="dialog-actions">
-      <button class="btn btn-secondary" id="cancelBtn">Abbrechen</button>
-      <button class="btn btn-primary" id="saveBtn">Erstellen</button>
-    </div>
-  </div>
+    </form>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+  </section>
+
+  <!-- Countdown Liste -->
+  <section class="cards" id="cards"></section>
 </div>
 
 <script>
-(function() {
-  'use strict';
-  
-  const STORAGE_KEY = 'countdownTool';
-  const MAX_THUMB_W = 600;
-  const MAX_THUMB_H = 400;
-  
-  /** @type {Array} */
+(() => {
+  const DB_NAME = 'neon-countdowns';
+  const STORE = 'countdowns';
+  let db = null;
+  let currentImageBlob = null; // WebP-Thumbnail für neues Formular
+  let currentImageUrl = null;  // ObjectURL für Vorschau
   let countdowns = [];
-  let editId = null;       // null = create, sonst edit
-  let pendingImage = null; // dataURL des webp-Thumbnails
-  
-  const $ = id => document.getElementById(id);
-  const grid = $('grid');
-  const overlay = $('overlay');
-  const titleInput = $('titleInput');
-  const startInput = $('startInput');
-  const endInput = $('endInput');
-  const repeatInput = $('repeatInput');
-  const dropZone = $('dropZone');
-  const dropText = $('dropText');
-  const fileInput = $('fileInput');
-  const emptyState = $('emptyState');
-  
-  // ---------- Storage ----------
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      countdowns = raw ? JSON.parse(raw) : [];
-      if (!Array.isArray(countdowns)) countdowns = [];
-    } catch(e) {
-      countdowns = [];
-    }
+  let tickHandle = null;
+
+  /* ---------- IndexedDB ---------- */
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains(STORE)) {
+          d.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
   }
-  
-  function save() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(countdowns));
-    } catch(e) {
-      alert('Speichern fehlgeschlagen (Speicher voll?). Bitte weniger/kleinere Bilder verwenden.');
-    }
+  function tx(mode) {
+    return db.transaction(STORE, mode).objectStore(STORE);
   }
-  
-  // ---------- Helpers ----------
-  function pad(n) { return String(n).padStart(2, '0'); }
-  
+  function dbGetAll() {
+    return new Promise((resolve, reject) => {
+      const req = tx('readonly').getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function dbAdd(obj) {
+    return new Promise((resolve, reject) => {
+      const req = tx('readwrite').add(obj);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function dbPut(obj) {
+    return new Promise((resolve, reject) => {
+      const req = tx('readwrite').put(obj);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function dbDelete(id) {
+    return new Promise((resolve, reject) => {
+      const req = tx('readwrite').delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  /* ---------- Bildverarbeitung: Thumbnail als WebP ---------- */
+  function processImage(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('image/')) return reject(new Error('Keine Bilddatei'));
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const MAX = 640;
+        let { width: w, height: h } = img;
+        const scale = Math.min(MAX / w, MAX / h, 1);
+        w = Math.round(w * scale); h = Math.round(h * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('WebP-Erstellung fehlgeschlagen'));
+        }, 'image/webp', 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bild konnte nicht geladen werden')); };
+      img.src = url;
+    });
+  }
+
+  /* ---------- Datum/Zeit Helfer ---------- */
   function toLocalInputValue(date) {
+    const pad = n => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
-  
-  function parseInputValue(v) {
-    // datetime-local -> Date (lokale Zeit)
-    if (!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
+  function parseInputValue(str) { return new Date(str).getTime(); }
+
+  function fmt(dateMs) {
+    const d = new Date(dateMs);
+    return d.toLocaleString('de-DE', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
   }
-  
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
-  }
-  
-  // ---------- Wiederholungs-Logik ----------
-  // Wenn abgelaufen und repeat aktiv: neuer Start = heute mit ursprünglicher Uhrzeit,
-  // aber frühestens am folgenden Kalendertag nach dem ursprünglichen Start.
-  // Genauer: Wir rollen den Start so lange um +1 Tag weiter, bis er in der Zukunft liegt.
-  function updateRepeat(cd) {
-    if (!cd.repeat) return cd;
+
+  /* ---------- Logik: Wiederholung ---------- */
+  // Prüft, ob ein wiederholender Countdown neu gestartet werden muss.
+  // Bedingung: jetzt >= end UND jetzt ist ein anderer Kalendertag als Start (frühestens am folgenden Tag).
+  // Neuer Start: heutiges Datum mit ursprünglicher Startuhrzeit. Ende = neuer Start + (ende - start).
+  function maybeRepeat(c) {
+    if (!c.repeat) return null;
     const now = Date.now();
-    let start = new Date(cd.start);
-    let end = new Date(cd.end);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return cd;
-    
-    const diff = end.getTime() - start.getTime();
-    
-    // Solange das Ende vorbei ist, Start um einen Tag nach vorne rollen
-    while (end.getTime() <= now) {
-      const nextStart = new Date(start);
-      nextStart.setDate(nextStart.getDate() + 1);
-      start = nextStart;
-      end = new Date(start.getTime() + diff);
+    if (now < c.end) return null;
+
+    const origStart = new Date(c.start);
+    const duration = c.end - c.start;
+    if (duration <= 0) return null;
+
+    // Startzeit (Stunde/Minute/Sekunde/Ms) vom ursprünglichen Start
+    const nowDate = new Date(now);
+    const newStart = new Date(
+      nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate(),
+      origStart.getHours(), origStart.getMinutes(), origStart.getSeconds(), origStart.getMilliseconds()
+    );
+
+    // Frühestens am folgenden Kalendertag: Wenn newStart vor dem ursprünglichen Start liegt
+    // (also heute schon vorbei wäre), dann auf morgen verschieben.
+    if (newStart.getTime() < origStart.getTime()) {
+      // wenn das ursprüngliche Startdatum heute wäre und die Zeit vorbei ist -> morgen
     }
-    
-    if (start.getTime() !== new Date(cd.start).getTime()) {
-      cd.start = start.toISOString();
-      cd.end = end.toISOString();
+
+    // Bedingung "frühestens am folgenden Kalendertag": Der neue Start darf nicht am gleichen
+    // Kalendertag wie der ursprüngliche Start liegen, wenn der ursprüngliche Tag der heutige wäre.
+    // Wir nehmen heute, aber wenn heute == ursprünglicher Starttag (Datum), dann auf morgen.
+    const sameDayAsOrigStart =
+      nowDate.getFullYear() === origStart.getFullYear() &&
+      nowDate.getMonth() === origStart.getMonth() &&
+      nowDate.getDate() === origStart.getDate();
+
+    if (sameDayAsOrigStart) {
+      newStart.setDate(newStart.getDate() + 1);
     }
-    return cd;
+
+    // Zusätzlich: Falls newStart in der Vergangenheit läge (z.B. Uhrzeit heute bereits vorbei,
+    // aber wir sind noch am selben Tag wie der letzte Neustart), auf morgen.
+    if (newStart.getTime() <= now) {
+      newStart.setDate(newStart.getDate() + 1);
+    }
+
+    // Wenn der neue Start immer noch vor dem aktuellen Zeitpunkt + wir eigentlich schon "nach" dem
+    // ursprünglichen Start sind, ist das ok - dann läuft er sofort.
+
+    const newStartMs = newStart.getTime();
+    const newEndMs = newStartMs + duration;
+
+    // Falls wir den nächsten Zyklus noch gar nicht erreicht haben (Ende liegt noch in der Zukunft),
+    // nichts tun.
+    if (newEndMs <= now) {
+      // Zyklus schon wieder vorbei? Dann einen Tag weiter.
+      newStart.setDate(newStart.getDate() + 1);
+      return {
+        start: newStart.getTime(),
+        end: newStart.getTime() + duration
+      };
+    }
+
+    return { start: newStartMs, end: newEndMs };
   }
-  
-  // ---------- Rendering ----------
+
+  /* ---------- Rendering ---------- */
+  const cardsEl = document.getElementById('cards');
+
   function render() {
-    // Erst alle wiederkehrenden Countdowns aktualisieren
-    let changed = false;
-    for (const cd of countdowns) {
-      const oldStart = cd.start, oldEnd = cd.end;
-      updateRepeat(cd);
-      if (cd.start !== oldStart || cd.end !== oldEnd) changed = true;
-    }
-    if (changed) save();
-    
-    grid.innerHTML = '';
-    
+    cardsEl.innerHTML = '';
     if (countdowns.length === 0) {
-      emptyState.style.display = 'block';
+      const div = document.createElement('div');
+      div.className = 'empty';
+      div.textContent = 'Noch keine Countdowns – erstelle deinen ersten!';
+      cardsEl.appendChild(div);
       return;
     }
-    emptyState.style.display = 'none';
-    
-    countdowns.forEach((cd, idx) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.id = cd.id;
-      card.style.animationDelay = (idx * 0.05) + 's';
-      
-      const imgHtml = cd.image
-        ? `<img class="card-img" src="${cd.image}" alt="">`
-        : `<div class="card-img-placeholder">⏱</div>`;
-      
-      const startD = new Date(cd.start);
-      const endD = new Date(cd.end);
-      const fmt = d => `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      
-      card.innerHTML = `
-        ${imgHtml}
-        <div class="card-content">
-          <div class="card-title">${escapeHtml(cd.title)}</div>
-          <div class="card-dates">
-            <span>Start: ${fmt(startD)}</span>
-            <span>Ende: ${fmt(endD)}</span>
-            ${cd.repeat ? '<span class="repeat-badge">↻ täglich</span>' : ''}
-          </div>
-          <div class="cd-body"></div>
-          <div class="progress-wrap"><div class="progress-bar" style="width:0%"></div></div>
-          <div class="card-actions">
-            <button class="icon-btn edit-btn">Bearbeiten</button>
-            <button class="icon-btn danger delete-btn">Löschen</button>
-          </div>
-        </div>
-      `;
-      
-      card.querySelector('.edit-btn').addEventListener('click', () => openDialog(cd.id));
-      card.querySelector('.delete-btn').addEventListener('click', () => {
-        if ( 1 || confirm('Countdown "' + cd.title + '" löschen?')) {
-          countdowns = countdowns.filter(x => x.id !== cd.id);
-          save();
-          render();
-        }
-      });
-      
-      grid.appendChild(card);
-    });
-    
-    updateAllCards();
-  }
-  
-  function updateAllCards() {
-    const now = Date.now();
-    let needsSave = false;
-    
-    document.querySelectorAll('.card').forEach(card => {
-      const id = card.dataset.id;
-      const cd = countdowns.find(x => x.id === id);
-      if (!cd) return;
-      
-      // Vor Update nochmal Repeat prüfen (falls während Anzeige abgelaufen)
-      const oldStart = cd.start, oldEnd = cd.end;
-      updateRepeat(cd);
-      if (cd.start !== oldStart || cd.end !== oldEnd) needsSave = true;
-      
-      const start = new Date(cd.start).getTime();
-      const end = new Date(cd.end).getTime();
-      const body = card.querySelector('.cd-body');
-      const bar = card.querySelector('.progress-bar');
-      
-      // Gesamtdauer & Fortschritt
-      const total = end - start;
-      
-      if (now >= end) {
-        // abgelaufen
-        card.classList.add('expired');
-        if (!body.querySelector('.expired-label')) {
-          body.innerHTML = '<div class="expired-label">Abgelaufen</div>';
-        }
-        bar.style.width = '100%';
-        // Datums-Strings aktualisieren (falls Repeat gerollt hat)
-        const startD = new Date(cd.start), endD = new Date(cd.end);
-        const fmt = d => `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        const spans = card.querySelectorAll('.card-dates span');
-        if (spans[0]) spans[0].textContent = 'Start: ' + fmt(startD);
-        if (spans[1]) spans[1].textContent = 'Ende: ' + fmt(endD);
-      } else {
-        card.classList.remove('expired');
-        const remaining = end - now;
-        const totalSec = Math.floor(remaining / 1000);
-        const days = Math.floor(totalSec / 86400);
-        const hours = Math.floor((totalSec % 86400) / 3600);
-        const mins = Math.floor((totalSec % 3600) / 60);
-        const secs = totalSec % 60;
-        
-        // Nur neu aufbauen, wenn sich expired-label noch im body befindet
-        if (body.querySelector('.expired-label') || !body.querySelector('.countdown')) {
-          body.innerHTML = `
-            <div class="countdown">
-              <div class="cd-unit"><div class="cd-value" data-u="d">0</div><div class="cd-label">Tage</div></div>
-              <div class="cd-unit"><div class="cd-value" data-u="h">0</div><div class="cd-label">Std</div></div>
-              <div class="cd-unit"><div class="cd-value" data-u="m">0</div><div class="cd-label">Min</div></div>
-              <div class="cd-unit"><div class="cd-value" data-u="s">0</div><div class="cd-label">Sek</div></div>
-            </div>
-          `;
-        }
-        
-        body.querySelector('[data-u="d"]').textContent = days;
-        body.querySelector('[data-u="h"]').textContent = pad(hours);
-        body.querySelector('[data-u="m"]').textContent = pad(mins);
-        body.querySelector('[data-u="s"]').textContent = pad(secs);
-        
-        // Fortschritt
-        let pct = total > 0 ? ((now - start) / total) * 100 : 0;
-        pct = Math.max(0, Math.min(100, pct));
-        bar.style.width = pct.toFixed(2) + '%';
-        
-        // Datums-Strings aktualisieren
-        const startD = new Date(cd.start), endD = new Date(cd.end);
-        const fmt = d => `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        const spans = card.querySelectorAll('.card-dates span');
-        if (spans[0]) spans[0].textContent = 'Start: ' + fmt(startD);
-        if (spans[1]) spans[1].textContent = 'Ende: ' + fmt(endD);
-      }
-    });
-    
-    if (needsSave) save();
-  }
-  
-  // ---------- Dialog ----------
-  function openDialog(id) {
-    editId = id || null;
-    pendingImage = null;
-    
-    if (editId) {
-      const cd = countdowns.find(x => x.id === editId);
-      if (!cd) return;
-      $('dialogTitle').textContent = 'Countdown bearbeiten';
-      titleInput.value = cd.title;
-      startInput.value = toLocalInputValue(new Date(cd.start));
-      endInput.value = toLocalInputValue(new Date(cd.end));
-      repeatInput.checked = !!cd.repeat;
-      pendingImage = cd.image || null;
-      updateDropZonePreview();
-      $('saveBtn').textContent = 'Speichern';
-    } else {
-      $('dialogTitle').textContent = 'Neuer Countdown';
-      titleInput.value = 'Neuer Countdown';
-      const now = new Date();
-      now.setSeconds(0, 0);
-      const start = new Date(now.getTime() + 5 * 60 * 1000);
-      const end = new Date(start.getTime() + 60 * 60 * 1000); // +1h default? 
-      // Default: start = jetzt + 5min, ende = start + 1h
-      startInput.value = toLocalInputValue(start);
-      endInput.value = toLocalInputValue(end);
-      repeatInput.checked = false;
-      updateDropZonePreview();
-      $('saveBtn').textContent = 'Erstellen';
+    for (const c of countdowns) {
+      cardsEl.appendChild(buildCard(c));
     }
-    
-    overlay.classList.add('active');
-    setTimeout(() => titleInput.focus(), 100);
+    updateAllClocks();
   }
-  
-  function closeDialog() {
-    overlay.classList.remove('active');
-    editId = null;
-    pendingImage = null;
-  }
-  
-  function updateDropZonePreview() {
-    dropZone.querySelectorAll('img, .hint').forEach(el => el.remove());
-    if (pendingImage) {
+
+  function buildCard(c) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.id = c.id;
+
+    if (c.imageBlob) {
       const img = document.createElement('img');
-      img.src = pendingImage;
-      dropZone.insertBefore(img, dropText);
-      dropText.textContent = 'Bild ausgewählt';
-      // Klick auf Bild → Datei neu wählen
+      img.className = 'thumb';
+      img.alt = '';
+      const url = URL.createObjectURL(c.imageBlob);
+      img.src = url;
+      img.onload = () => URL.revokeObjectURL(url);
+      card.appendChild(img);
     } else {
-      dropText.textContent = 'Bild hierher ziehen, klicken oder Strg+V';
-      const hint = document.createElement('span');
-      hint.className = 'hint';
-      hint.textContent = 'wird als WebP-Thumbnail gespeichert';
-      dropZone.appendChild(hint);
+      const img = document.createElement('div');
+      img.className = 'thumb';
+      card.appendChild(img);
     }
-  }
-  
-  // ---------- Bildverarbeitung ----------
-  function processImageFile(file) {
-    return new Promise((resolve, reject) => {
-      if (!file || !file.type.startsWith('image/')) {
-        reject(new Error('Kein Bild'));
-        return;
+
+    const body = document.createElement('div');
+    body.className = 'body';
+
+    const titleRow = document.createElement('div');
+    titleRow.className = 'title-row';
+    const h2 = document.createElement('h2');
+    h2.textContent = c.title;
+    titleRow.appendChild(h2);
+    if (c.repeat) {
+      const badge = document.createElement('span');
+      badge.className = 'repeat-badge';
+      badge.textContent = '↻ täglich';
+      titleRow.appendChild(badge);
+    }
+    body.appendChild(titleRow);
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.innerHTML = `<span>Start: ${fmt(c.start)}</span><span>Ende: ${fmt(c.end)}</span>`;
+    body.appendChild(meta);
+
+    const timeLeftLabel = document.createElement('div');
+    timeLeftLabel.className = 'time-left-label';
+    timeLeftLabel.textContent = 'Verbleibend';
+    body.appendChild(timeLeftLabel);
+
+    const clock = document.createElement('div');
+    clock.className = 'clock';
+    body.appendChild(clock);
+
+    const status = document.createElement('div');
+    status.className = 'status';
+    status.style.display = 'none';
+    body.appendChild(status);
+
+    const progressWrap = document.createElement('div');
+    progressWrap.className = 'progress-wrap';
+    const fill = document.createElement('div');
+    fill.className = 'progress-fill';
+    progressWrap.appendChild(fill);
+    body.appendChild(progressWrap);
+
+    card.appendChild(body);
+
+    const del = document.createElement('button');
+    del.className = 'del';
+    del.title = 'Löschen';
+    del.textContent = '✕';
+    del.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (1 || confirm('Diesen Countdown wirklich löschen?')) {
+        await dbDelete(c.id);
+        countdowns = countdowns.filter(x => x.id !== c.id);
+        render();
+        updateAddBtn();
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          // Auf max-Größe skalieren
-          let w = img.naturalWidth, h = img.naturalHeight;
-          const ratio = Math.min(MAX_THUMB_W / w, MAX_THUMB_H / h, 1);
-          w = Math.round(w * ratio);
-          h = Math.round(h * ratio);
-          
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          
-          try {
-            const webp = canvas.toDataURL('image/webp', 0.8);
-            // Browser ohne WebP-Support liefern PNG
-            resolve(webp);
-          } catch(e) {
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
-          }
-        };
-        img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
-        img.src = reader.result;
-      };
-      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden'));
-      reader.readAsDataURL(file);
     });
+    card.appendChild(del);
+
+    return card;
   }
-  
-  async function handleImageFile(file) {
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function updateAllClocks() {
+    const now = Date.now();
+    for (const c of countdowns) {
+      const card = cardsEl.querySelector(`.card[data-id="${c.id}"]`);
+      if (!card) continue;
+      const clock = card.querySelector('.clock');
+      const status = card.querySelector('.status');
+      const label = card.querySelector('.time-left-label');
+      const fill = card.querySelector('.progress-fill');
+
+      if (now < c.start) {
+        clock.style.display = 'none';
+        label.style.display = 'none';
+        fill.parentElement.style.display = 'none';
+        status.style.display = '';
+        status.className = 'status waiting';
+        status.textContent = 'Ausstehend';
+        const diff = c.start - now;
+        status.title = 'Startet in ' + humanDiff(diff);
+      } else if (now >= c.end) {
+        clock.style.display = 'none';
+        label.style.display = 'none';
+        fill.parentElement.style.display = 'none';
+        status.style.display = '';
+        status.className = 'status expired';
+        status.textContent = 'Abgelaufen';
+        status.title = '';
+      } else {
+        status.style.display = 'none';
+        clock.style.display = '';
+        label.style.display = '';
+        fill.parentElement.style.display = '';
+        const remaining = c.end - now;
+        clock.innerHTML = formatClock(remaining);
+        const total = c.end - c.start;
+        const pct = Math.min(100, Math.max(0, ((now - c.start) / total) * 100));
+        fill.style.width = pct.toFixed(2) + '%';
+      }
+    }
+  }
+
+  function humanDiff(ms) {
+    const s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return `${d}d ${h}h ${m}m`;
+  }
+
+  function formatClock(ms) {
+    const totalSec = Math.max(0, Math.ceil(ms / 1000));
+    const d = Math.floor(totalSec / 86400);
+    const h = Math.floor((totalSec % 86400) / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    let out = '';
+    if (d > 0) out += `${d}<small>d</small> `;
+    out += `${pad2(h)}<small>h</small> ${pad2(m)}<small>m</small> ${pad2(s)}<small>s</small>`;
+    return out;
+  }
+
+  /* ---------- Tick & Wiederholung ---------- */
+  async function tick() {
+    // Wiederholungen prüfen
+    let changed = false;
+    for (const c of countdowns) {
+      const rep = maybeRepeat(c);
+      if (rep) {
+        c.start = rep.start;
+        c.end = rep.end;
+        changed = true;
+        await dbPut(c);
+      }
+    }
+    if (changed) render();
+    updateAllClocks();
+  }
+
+  /* ---------- Formular Steuerung ---------- */
+  const formPanel = document.getElementById('formPanel');
+  const addBtn = document.getElementById('addBtn');
+  const form = document.getElementById('createForm');
+  const titleInput = document.getElementById('title');
+  const startInput = document.getElementById('start');
+  const endInput = document.getElementById('end');
+  const repeatInput = document.getElementById('repeat');
+  const dropzone = document.getElementById('dropzone');
+  const dropText = document.getElementById('dropText');
+  const fileInput = document.getElementById('fileInput');
+
+  function resetFormDefaults() {
+    const now = new Date();
+    const end = new Date(now.getTime() + 5 * 60 * 1000);
+    startInput.value = toLocalInputValue(now);
+    endInput.value = toLocalInputValue(end);
+    titleInput.value = 'Neuer Countdown';
+    repeatInput.checked = false;
+    clearImage();
+  }
+
+  function showForm() {
+    formPanel.classList.remove('hidden');
+    addBtn.classList.remove('visible');
+    // Defaults nur setzen, wenn leer
+    if (!startInput.value) {
+      resetFormDefaults();
+    }
+    titleInput.focus();
+    titleInput.select();
+  }
+
+  function hideForm() {
+    formPanel.classList.add('hidden');
+    updateAddBtn();
+  }
+
+  function updateAddBtn() {
+    const has = countdowns.length > 0;
+    addBtn.classList.toggle('visible', has);
+  }
+
+  function clearImage() {
+    currentImageBlob = null;
+    if (currentImageUrl) {
+      URL.revokeObjectURL(currentImageUrl);
+      currentImageUrl = null;
+    }
+    dropzone.querySelectorAll('img.preview').forEach(el => el.remove());
+    dropText.style.display = '';
+  }
+
+  function setImagePreview(blob) {
+    clearImage();
+    currentImageBlob = blob;
+    currentImageUrl = URL.createObjectURL(blob);
+    dropText.style.display = 'none';
+    const img = document.createElement('img');
+    img.className = 'preview';
+    img.src = currentImageUrl;
+    dropzone.appendChild(img);
+  }
+
+  async function handleFile(file) {
     try {
-      const dataUrl = await processImageFile(file);
-      pendingImage = dataUrl;
-      updateDropZonePreview();
-    } catch(e) {
-      alert(e.message || 'Bildfehler');
+      const blob = await processImage(file);
+      setImagePreview(blob);
+    } catch (err) {
+      alert('Bild konnte nicht verarbeitet werden: ' + err.message);
     }
   }
-  
-  // Drop-Zone Events
-  dropZone.addEventListener('click', () => fileInput.click());
-  dropZone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-  });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) handleImageFile(file);
-  });
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files && fileInput.files[0]) {
-      handleImageFile(fileInput.files[0]);
-    }
+
+  // Datei Input
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
     fileInput.value = '';
   });
-  
-  // Strg+V (Paste) - global, aber nur wenn Dialog offen
-  document.addEventListener('paste', e => {
-    if (!overlay.classList.contains('active')) return;
-    const items = e.clipboardData && e.clipboardData.items;
+
+  // Drag & Drop
+  ['dragenter', 'dragover'].forEach(ev => {
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.add('drag');
+    });
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    dropzone.addEventListener(ev, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.remove('drag');
+    });
+  });
+  dropzone.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  // Strg+V global
+  document.addEventListener('paste', (e) => {
+    if (formPanel.classList.contains('hidden')) return;
+    const items = e.clipboardData?.items;
     if (!items) return;
     for (const item of items) {
       if (item.type.startsWith('image/')) {
-        e.preventDefault();
         const file = item.getAsFile();
-        if (file) handleImageFile(file);
-        break;
+        if (file) {
+          handleFile(file);
+          e.preventDefault();
+          break;
+        }
       }
     }
   });
-  
-  // ---------- Speichern ----------
-  $('saveBtn').addEventListener('click', () => {
-    const title = (titleInput.value || '').trim() || 'Neuer Countdown';
-    const startDate = parseInputValue(startInput.value);
-    const endDate = parseInputValue(endInput.value);
-    
-    if (!startDate || !endDate) {
-      alert('Bitte Start und Ende angeben.');
-      return;
+
+  // Add Button
+  addBtn.addEventListener('click', showForm);
+  document.getElementById('cancelBtn').addEventListener('click', () => {
+    hideForm();
+    if (countdowns.length === 0) {
+      // Wenn keine Countdowns existieren, Formular sichtbar lassen (kein Ausblenden)
+      showForm();
     }
-    if (endDate.getTime() <= startDate.getTime()) {
-      alert('Das Ende muss nach dem Start liegen.');
-      return;
-    }
-    
-    if (editId) {
-      const cd = countdowns.find(x => x.id === editId);
-      if (cd) {
-        cd.title = title;
-        cd.start = startDate.toISOString();
-        cd.end = endDate.toISOString();
-        cd.repeat = repeatInput.checked;
-        cd.image = pendingImage || null;
-      }
-    } else {
-      countdowns.push({
-        id: 'cd_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-        title,
-        start: startDate.toISOString(),
-        end: endDate.toISOString(),
-        repeat: repeatInput.checked,
-        image: pendingImage || null,
-        created: Date.now()
-      });
-    }
-    
-    save();
-    closeDialog();
+  });
+
+  // Submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = titleInput.value.trim() || 'Neuer Countdown';
+    const start = parseInputValue(startInput.value);
+    const end = parseInputValue(endInput.value);
+    if (isNaN(start) || isNaN(end)) { alert('Bitte gültige Datum/Zeit-Werte angeben.'); return; }
+    if (end <= start) { alert('Das Ende muss nach dem Start liegen.'); return; }
+
+    const record = {
+      title,
+      start,
+      end,
+      repeat: repeatInput.checked,
+      imageBlob: currentImageBlob,
+      createdAt: Date.now()
+    };
+    const id = await dbAdd(record);
+    record.id = id;
+    countdowns.push(record);
+
+    // Formular zurücksetzen und ausblenden
+    resetFormDefaults();
+    hideForm();
     render();
+    updateAddBtn();
   });
-  
-  $('cancelBtn').addEventListener('click', closeDialog);
-  
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeDialog();
-  });
-  
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && overlay.classList.contains('active')) closeDialog();
-  });
-  
-  // Add-Button
-  $('addBtn').addEventListener('click', () => openDialog(null));
-  
-  // ---------- Init ----------
-  load();
-  render();
-  
-  // Start-Dialog nur anzeigen, wenn keine Countdowns existieren
-  if (countdowns.length === 0) {
-    openDialog(null);
-  }
-  
-  // Tick jede Sekunde
-  setInterval(updateAllCards, 1000);
-  
-  // Bei Fokuswechsel (Tab wieder aktiv) sofort aktualisieren
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      render();
+
+  /* ---------- Init ---------- */
+  async function init() {
+    db = await openDB();
+    countdowns = await dbGetAll();
+    render();
+    updateAddBtn();
+
+    if (countdowns.length === 0) {
+      // Formular sofort sichtbar mit Defaults
+      resetFormDefaults();
+      formPanel.classList.remove('hidden');
+      addBtn.classList.remove('visible');
+    } else {
+      formPanel.classList.add('hidden');
+      updateAddBtn();
     }
-  });
+
+    // Tick jede Sekunde
+    tickHandle = setInterval(tick, 1000);
+    // Beim Sichtbarwerden ebenfalls ticken
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) tick();
+    });
+  }
+
+  init();
 })();
 </script>
 </body>
