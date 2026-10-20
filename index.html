@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neon Countdowns</title>
+<title>Countdowns</title>
 <style>
   :root {
     --bg: #0a0a12;
@@ -186,6 +186,17 @@
   .card:hover .del { opacity: 1; }
   .card .del:hover { box-shadow: 0 0 12px var(--neon2); }
 
+  /* NEU: Bearbeiten-Button oben links */
+  .card .edit {
+    position: absolute; top: 10px; left: 10px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(0,0,0,.6); color: var(--neon); border: 1px solid rgba(0,240,255,.5);
+    cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .2s, box-shadow .2s;
+  }
+  .card:hover .edit { opacity: 1; }
+  .card .edit:hover { box-shadow: 0 0 12px var(--neon); }
+
   .empty { color: var(--muted); text-align: center; padding: 40px; grid-column: 1/-1; }
   .time-left-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
 </style>
@@ -231,7 +242,7 @@
       </div>
       <div class="actions">
         <button type="button" class="ghost" id="cancelBtn">Abbrechen</button>
-        <button type="submit" class="primary">Countdown erstellen</button>
+        <button type="submit" class="primary" id="submitBtn">Countdown erstellen</button>
       </div>
     </form>
     <input type="file" id="fileInput" accept="image/*" style="display:none">
@@ -250,6 +261,9 @@
   let currentImageUrl = null;  // ObjectURL für Vorschau
   let countdowns = [];
   let tickHandle = null;
+
+  // NEU: Bearbeitungsmodus
+  let editingId = null;
 
   /* ---------- IndexedDB ---------- */
   function openDB() {
@@ -339,9 +353,6 @@
   }
 
   /* ---------- Logik: Wiederholung ---------- */
-  // Prüft, ob ein wiederholender Countdown neu gestartet werden muss.
-  // Bedingung: jetzt >= end UND jetzt ist ein anderer Kalendertag als Start (frühestens am folgenden Tag).
-  // Neuer Start: heutiges Datum mit ursprünglicher Startuhrzeit. Ende = neuer Start + (ende - start).
   function maybeRepeat(c) {
     if (!c.repeat) return null;
     const now = Date.now();
@@ -351,22 +362,12 @@
     const duration = c.end - c.start;
     if (duration <= 0) return null;
 
-    // Startzeit (Stunde/Minute/Sekunde/Ms) vom ursprünglichen Start
     const nowDate = new Date(now);
     const newStart = new Date(
       nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate(),
       origStart.getHours(), origStart.getMinutes(), origStart.getSeconds(), origStart.getMilliseconds()
     );
 
-    // Frühestens am folgenden Kalendertag: Wenn newStart vor dem ursprünglichen Start liegt
-    // (also heute schon vorbei wäre), dann auf morgen verschieben.
-    if (newStart.getTime() < origStart.getTime()) {
-      // wenn das ursprüngliche Startdatum heute wäre und die Zeit vorbei ist -> morgen
-    }
-
-    // Bedingung "frühestens am folgenden Kalendertag": Der neue Start darf nicht am gleichen
-    // Kalendertag wie der ursprüngliche Start liegen, wenn der ursprüngliche Tag der heutige wäre.
-    // Wir nehmen heute, aber wenn heute == ursprünglicher Starttag (Datum), dann auf morgen.
     const sameDayAsOrigStart =
       nowDate.getFullYear() === origStart.getFullYear() &&
       nowDate.getMonth() === origStart.getMonth() &&
@@ -376,22 +377,14 @@
       newStart.setDate(newStart.getDate() + 1);
     }
 
-    // Zusätzlich: Falls newStart in der Vergangenheit läge (z.B. Uhrzeit heute bereits vorbei,
-    // aber wir sind noch am selben Tag wie der letzte Neustart), auf morgen.
     if (newStart.getTime() <= now) {
       newStart.setDate(newStart.getDate() + 1);
     }
 
-    // Wenn der neue Start immer noch vor dem aktuellen Zeitpunkt + wir eigentlich schon "nach" dem
-    // ursprünglichen Start sind, ist das ok - dann läuft er sofort.
-
     const newStartMs = newStart.getTime();
     const newEndMs = newStartMs + duration;
 
-    // Falls wir den nächsten Zyklus noch gar nicht erreicht haben (Ende liegt noch in der Zukunft),
-    // nichts tun.
     if (newEndMs <= now) {
-      // Zyklus schon wieder vorbei? Dann einen Tag weiter.
       newStart.setDate(newStart.getDate() + 1);
       return {
         start: newStart.getTime(),
@@ -483,15 +476,32 @@
 
     card.appendChild(body);
 
+    // NEU: Bearbeiten-Button oben links
+    const edit = document.createElement('button');
+    edit.className = 'edit';
+    edit.title = 'Bearbeiten';
+    edit.textContent = '✎';
+    edit.addEventListener('click', (e) => {
+      e.stopPropagation();
+      startEdit(c.id);
+    });
+    card.appendChild(edit);
+
     const del = document.createElement('button');
     del.className = 'del';
     del.title = 'Löschen';
     del.textContent = '✕';
     del.addEventListener('click', async (e) => {
       e.stopPropagation();
-      if (1 || confirm('Diesen Countdown wirklich löschen?')) {
+      if (confirm('Diesen Countdown wirklich löschen?')) {
         await dbDelete(c.id);
         countdowns = countdowns.filter(x => x.id !== c.id);
+        // Falls gerade dieser Countdown bearbeitet wurde, Bearbeitungsmodus beenden
+        if (editingId === c.id) {
+          editingId = null;
+          resetFormDefaults();
+          hideForm();
+        }
         render();
         updateAddBtn();
       }
@@ -566,7 +576,6 @@
 
   /* ---------- Tick & Wiederholung ---------- */
   async function tick() {
-    // Wiederholungen prüfen
     let changed = false;
     for (const c of countdowns) {
       const rep = maybeRepeat(c);
@@ -592,6 +601,7 @@
   const dropzone = document.getElementById('dropzone');
   const dropText = document.getElementById('dropText');
   const fileInput = document.getElementById('fileInput');
+  const submitBtn = document.getElementById('submitBtn'); // NEU
 
   function resetFormDefaults() {
     const now = new Date();
@@ -606,7 +616,6 @@
   function showForm() {
     formPanel.classList.remove('hidden');
     addBtn.classList.remove('visible');
-    // Defaults nur setzen, wenn leer
     if (!startInput.value) {
       resetFormDefaults();
     }
@@ -654,6 +663,34 @@
     }
   }
 
+  // NEU: Bearbeitungsmodus starten
+  function startEdit(id) {
+    const c = countdowns.find(x => x.id === id);
+    if (!c) return;
+    editingId = id;
+
+    // Formular mit Werten vorbefüllen
+    titleInput.value = c.title;
+    startInput.value = toLocalInputValue(new Date(c.start));
+    endInput.value = toLocalInputValue(new Date(c.end));
+    repeatInput.checked = !!c.repeat;
+
+    // Bild-Vorschau setzen (falls vorhanden)
+    if (c.imageBlob) {
+      setImagePreview(c.imageBlob);
+    } else {
+      clearImage();
+    }
+
+    // Formular anzeigen, Submit-Button-Text anpassen
+    submitBtn.textContent = 'Änderungen speichern';
+    formPanel.classList.remove('hidden');
+    addBtn.classList.remove('visible');
+    formPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    titleInput.focus();
+    titleInput.select();
+  }
+
   // Datei Input
   dropzone.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', (e) => {
@@ -697,16 +734,26 @@
   });
 
   // Add Button
-  addBtn.addEventListener('click', showForm);
+  addBtn.addEventListener('click', () => {
+    // Beim Hinzufügen sicherstellen, dass wir nicht im Bearbeitungsmodus sind
+    editingId = null;
+    submitBtn.textContent = 'Countdown erstellen';
+    resetFormDefaults();
+    showForm();
+  });
+
   document.getElementById('cancelBtn').addEventListener('click', () => {
+    // NEU: Bearbeitungsmodus verlassen
+    editingId = null;
+    submitBtn.textContent = 'Countdown erstellen';
+    resetFormDefaults();
     hideForm();
     if (countdowns.length === 0) {
-      // Wenn keine Countdowns existieren, Formular sichtbar lassen (kein Ausblenden)
       showForm();
     }
   });
 
-  // Submit
+  // Submit (Neu + Bearbeiten)
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = titleInput.value.trim() || 'Neuer Countdown';
@@ -715,6 +762,32 @@
     if (isNaN(start) || isNaN(end)) { alert('Bitte gültige Datum/Zeit-Werte angeben.'); return; }
     if (end <= start) { alert('Das Ende muss nach dem Start liegen.'); return; }
 
+    if (editingId !== null) {
+      // NEU: Bestehenden Countdown aktualisieren
+      const idx = countdowns.findIndex(x => x.id === editingId);
+      if (idx === -1) { editingId = null; return; }
+      const existing = countdowns[idx];
+      const updated = {
+        ...existing,
+        title,
+        start,
+        end,
+        repeat: repeatInput.checked,
+        imageBlob: currentImageBlob
+      };
+      await dbPut(updated);
+      countdowns[idx] = updated;
+
+      editingId = null;
+      submitBtn.textContent = 'Countdown erstellen';
+      resetFormDefaults();
+      hideForm();
+      render();
+      updateAddBtn();
+      return;
+    }
+
+    // Neuer Countdown
     const record = {
       title,
       start,
@@ -727,7 +800,6 @@
     record.id = id;
     countdowns.push(record);
 
-    // Formular zurücksetzen und ausblenden
     resetFormDefaults();
     hideForm();
     render();
@@ -742,7 +814,6 @@
     updateAddBtn();
 
     if (countdowns.length === 0) {
-      // Formular sofort sichtbar mit Defaults
       resetFormDefaults();
       formPanel.classList.remove('hidden');
       addBtn.classList.remove('visible');
@@ -751,9 +822,7 @@
       updateAddBtn();
     }
 
-    // Tick jede Sekunde
     tickHandle = setInterval(tick, 1000);
-    // Beim Sichtbarwerden ebenfalls ticken
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) tick();
     });
