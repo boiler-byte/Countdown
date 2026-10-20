@@ -78,13 +78,27 @@
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field.full { grid-column: 1 / -1; }
   label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-  input[type="text"], input[type="datetime-local"] {
+  input[type="text"], input[type="datetime-local"], select {
     background: #0a0a14; color: var(--text);
     border: 1px solid #2a2a44; border-radius: 10px;
     padding: 12px 14px; font-size: 1rem; outline: none;
     transition: border-color .2s, box-shadow .2s;
   }
-  input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,240,255,.4); }
+  input:focus, select:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,240,255,.4); }
+  select {
+    appearance: none;
+    cursor: pointer;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--neon) 50%),
+      linear-gradient(135deg, var(--neon) 50%, transparent 50%);
+    background-position:
+      calc(100% - 20px) calc(50% - 3px),
+      calc(100% - 14px) calc(50% - 3px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 40px;
+  }
+  select option { background: #0a0a14; color: var(--text); }
 
   /* Switch */
   .switch-row { display: flex; align-items: center; gap: 12px; }
@@ -186,7 +200,6 @@
   .card:hover .del { opacity: 1; }
   .card .del:hover { box-shadow: 0 0 12px var(--neon2); }
 
-  /* NEU: Bearbeiten-Button oben links */
   .card .edit {
     position: absolute; top: 10px; left: 10px;
     width: 34px; height: 34px; border-radius: 50%;
@@ -212,6 +225,14 @@
   <section class="form-panel hidden" id="formPanel">
     <form id="createForm">
       <div class="form-grid">
+        <!-- Vorlagen-Dropdown -->
+        <div class="field full" id="templateField">
+          <label for="templateSelect">Vorlage wählen</label>
+          <select id="templateSelect">
+            <option value="">– Keine Vorlage (manuell) –</option>
+          </select>
+        </div>
+
         <div class="field full">
           <label for="title">Titel</label>
           <input type="text" id="title" required>
@@ -257,13 +278,66 @@
   const DB_NAME = 'neon-countdowns';
   const STORE = 'countdowns';
   let db = null;
-  let currentImageBlob = null; // WebP-Thumbnail für neues Formular
-  let currentImageUrl = null;  // ObjectURL für Vorschau
+  let currentImageBlob = null;
+  let currentImageUrl = null;
   let countdowns = [];
   let tickHandle = null;
-
-  // NEU: Bearbeitungsmodus
   let editingId = null;
+
+  /* ---------- Vorlagen (im Code definiert) ----------
+   * startOffset / endOffset: Dezimalstunden ab jetzt.
+   * startTime / endTime (optional, "HH:MM"): werden auf das aus dem Offset
+   *   berechnete Datum aufgesetzt (gleicher Tag), falls angegeben.
+   * startDay/startMonth/startYear, endDay/endMonth/endYear (optional):
+   *   Konkretes Datum. Wenn gesetzt, wird das Offset-Basis-Datum überschrieben.
+   *   - startYear/startMonth/startDay -> setzt das Datum des Starts
+   *   - endYear/endMonth/endDay     -> setzt das Datum des Endes
+   *   Werden nur teilweise gesetzt, werden fehlende Teile aus dem Offset-Datum
+   *   übernommen. startMonth/endMonth sind 1-basiert (1 = Januar).
+   */
+  const countdownTemplates = [
+    {
+      title: 'Feierabend',
+      startOffset: 0,
+      startTime: '08:00',
+      endOffset: 0,
+      endTime: '16:30',
+      repeat: false
+    },
+    {
+      title: 'Silvester-Countdown',
+	  startDay: 1,
+	  startMonth: 1,
+      startOffset: 0,
+      startTime: '00:00',
+	  endDay: 31,
+	  endMonth: 12,
+      endTime: '23:59',
+      repeat: false
+    },
+    {
+      title: 'Weihnachten (24.12.)',
+      startOffset: 0,
+      startTime: '00:00',
+      startDay: 24,
+      startMonth: 12,
+      endTime: '23:59',
+      endDay: 24,
+      endMonth: 12,
+      repeat: false
+    },
+    {
+      title: 'Neujahr (1.1.)',
+      startOffset: 0,
+      startTime: '00:00',
+      startDay: 1,
+      startMonth: 1,
+      endTime: '23:59',
+      endDay: 1,
+      endMonth: 1,
+      repeat: false
+    }
+  ];
 
   /* ---------- IndexedDB ---------- */
   function openDB() {
@@ -311,7 +385,7 @@
     });
   }
 
-  /* ---------- Bildverarbeitung: Thumbnail als WebP ---------- */
+  /* ---------- Bildverarbeitung ---------- */
   function processImage(file) {
     return new Promise((resolve, reject) => {
       if (!file || !file.type.startsWith('image/')) return reject(new Error('Keine Bilddatei'));
@@ -476,7 +550,6 @@
 
     card.appendChild(body);
 
-    // NEU: Bearbeiten-Button oben links
     const edit = document.createElement('button');
     edit.className = 'edit';
     edit.title = 'Bearbeiten';
@@ -496,7 +569,6 @@
       if (confirm('Diesen Countdown wirklich löschen?')) {
         await dbDelete(c.id);
         countdowns = countdowns.filter(x => x.id !== c.id);
-        // Falls gerade dieser Countdown bearbeitet wurde, Bearbeitungsmodus beenden
         if (editingId === c.id) {
           editingId = null;
           resetFormDefaults();
@@ -601,7 +673,121 @@
   const dropzone = document.getElementById('dropzone');
   const dropText = document.getElementById('dropText');
   const fileInput = document.getElementById('fileInput');
-  const submitBtn = document.getElementById('submitBtn'); // NEU
+  const submitBtn = document.getElementById('submitBtn');
+  const templateSelect = document.getElementById('templateSelect');
+
+  /* ---------- Vorlagen-Dropdown ---------- */
+  function renderTemplateOptions() {
+    while (templateSelect.options.length > 1) {
+      templateSelect.remove(1);
+    }
+    countdownTemplates.forEach((tpl, idx) => {
+      const opt = document.createElement('option');
+      opt.value = String(idx);
+      opt.textContent = tpl.title;
+      templateSelect.appendChild(opt);
+    });
+  }
+
+  function parseHHMM(str) {
+    if (!str || typeof str !== 'string') return null;
+    const m = str.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    if (h < 0 || h > 23 || min < 0 || min > 59) return null;
+    return { h, min };
+  }
+
+  function isValidInt(v) {
+    return typeof v === 'number' && Number.isFinite(v) && Number.isInteger(v);
+  }
+
+  function applyTemplate(tpl) {
+    const now = new Date();
+
+    // 1. Basis-Startdatum: jetzt + startOffset (in Dezimalstunden)
+    const startDate = new Date(now.getTime() + (tpl.startOffset || 0) * 3600 * 1000);
+
+    // 2. Konkretes Startdatum aus startYear/startMonth/startDay anwenden
+    //    (nur die gesetzten Teile überschreiben; Monat 1-basiert)
+    if (isValidInt(tpl.startYear)) startDate.setFullYear(tpl.startYear);
+    if (isValidInt(tpl.startMonth)) startDate.setMonth(tpl.startMonth - 1);
+    if (isValidInt(tpl.startDay)) startDate.setDate(tpl.startDay);
+
+    // 3. Optional startTime auf das Startdatum aufsetzen
+    const st = parseHHMM(tpl.startTime);
+    if (st) {
+      startDate.setHours(st.h, st.min, 0, 0);
+    } else if (!isValidInt(tpl.startDay) && !isValidInt(tpl.startMonth) && !isValidInt(tpl.startYear)) {
+      // Ohne konkretes Datum und ohne startTime bleibt die Uhrzeit von "jetzt + offset"
+      // -> nichts weiter zu tun
+    }
+
+    // 4. Basis-Enddatum: jetzt + endOffset (in Dezimalstunden)
+    const endDate = new Date(now.getTime() + (tpl.endOffset || 0) * 3600 * 1000);
+
+    // 5. Konkretes Enddatum aus endYear/endMonth/endDay anwenden
+    if (isValidInt(tpl.endYear)) endDate.setFullYear(tpl.endYear);
+    if (isValidInt(tpl.endMonth)) endDate.setMonth(tpl.endMonth - 1);
+    if (isValidInt(tpl.endDay)) endDate.setDate(tpl.endDay);
+
+    // 6. Optional endTime auf das Enddatum aufsetzen
+    const et = parseHHMM(tpl.endTime);
+    if (et) {
+      endDate.setHours(et.h, et.min, 0, 0);
+    }
+
+    // 7. Falls endDate <= startDate: ggf. Jahr weiterdrehen oder +1 Tag.
+    //    Bei konkreten Datumsangaben (endDay/endMonth ohne Jahr) kann es sein,
+    //    dass das Enddatum im nächsten Jahr liegt -> dann Jahr erhöhen.
+    if (endDate.getTime() <= startDate.getTime()) {
+      if (isValidInt(tpl.endDay) || isValidInt(tpl.endMonth)) {
+        // konkretes Enddatum liegt "hinter" dem Start -> nächstes Jahr
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      } else if (isValidInt(tpl.startDay) || isValidInt(tpl.startMonth)) {
+        // Startdatum konkret in der Vergangenheit? -> ein Jahr weiter
+        startDate.setFullYear(startDate.getFullYear() + 1);
+        // Enddatum ggf. auch anpassen, falls es ohne konkretes Datum war
+        if (!isValidInt(tpl.endDay) && !isValidInt(tpl.endMonth)) {
+          endDate.setFullYear(startDate.getFullYear());
+        }
+      } else if (et) {
+        endDate.setDate(endDate.getDate() + 1);
+      } else {
+        endDate.setTime(startDate.getTime() + 60 * 1000);
+      }
+    }
+
+    // 8. Falls das konkrete Startdatum (ohne Jahr) bereits in der Vergangenheit
+    //    liegt und kein konkretes Enddatum vorhanden ist -> Jahr weiterdrehen.
+    if ((isValidInt(tpl.startDay) || isValidInt(tpl.startMonth)) && !isValidInt(tpl.startYear)) {
+      if (startDate.getTime() < now.getTime() && !isValidInt(tpl.endDay) && !isValidInt(tpl.endMonth)) {
+        startDate.setFullYear(startDate.getFullYear() + 1);
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      }
+    }
+
+    // 9. Sicherheitscheck: Ende muss nach Start liegen
+    if (endDate.getTime() <= startDate.getTime()) {
+      endDate.setTime(startDate.getTime() + 60 * 1000);
+    }
+
+    titleInput.value = tpl.title;
+    startInput.value = toLocalInputValue(startDate);
+    endInput.value = toLocalInputValue(endDate);
+    repeatInput.checked = !!tpl.repeat;
+
+    titleInput.focus();
+    titleInput.select();
+  }
+
+  templateSelect.addEventListener('change', () => {
+    const val = templateSelect.value;
+    if (val === '') return;
+    const tpl = countdownTemplates[parseInt(val, 10)];
+    if (tpl) applyTemplate(tpl);
+  });
 
   function resetFormDefaults() {
     const now = new Date();
@@ -610,6 +796,7 @@
     endInput.value = toLocalInputValue(end);
     titleInput.value = 'Neuer Countdown';
     repeatInput.checked = false;
+    templateSelect.value = '';
     clearImage();
   }
 
@@ -663,26 +850,23 @@
     }
   }
 
-  // NEU: Bearbeitungsmodus starten
   function startEdit(id) {
     const c = countdowns.find(x => x.id === id);
     if (!c) return;
     editingId = id;
 
-    // Formular mit Werten vorbefüllen
     titleInput.value = c.title;
     startInput.value = toLocalInputValue(new Date(c.start));
     endInput.value = toLocalInputValue(new Date(c.end));
     repeatInput.checked = !!c.repeat;
+    templateSelect.value = '';
 
-    // Bild-Vorschau setzen (falls vorhanden)
     if (c.imageBlob) {
       setImagePreview(c.imageBlob);
     } else {
       clearImage();
     }
 
-    // Formular anzeigen, Submit-Button-Text anpassen
     submitBtn.textContent = 'Änderungen speichern';
     formPanel.classList.remove('hidden');
     addBtn.classList.remove('visible');
@@ -735,7 +919,6 @@
 
   // Add Button
   addBtn.addEventListener('click', () => {
-    // Beim Hinzufügen sicherstellen, dass wir nicht im Bearbeitungsmodus sind
     editingId = null;
     submitBtn.textContent = 'Countdown erstellen';
     resetFormDefaults();
@@ -743,7 +926,6 @@
   });
 
   document.getElementById('cancelBtn').addEventListener('click', () => {
-    // NEU: Bearbeitungsmodus verlassen
     editingId = null;
     submitBtn.textContent = 'Countdown erstellen';
     resetFormDefaults();
@@ -763,7 +945,6 @@
     if (end <= start) { alert('Das Ende muss nach dem Start liegen.'); return; }
 
     if (editingId !== null) {
-      // NEU: Bestehenden Countdown aktualisieren
       const idx = countdowns.findIndex(x => x.id === editingId);
       if (idx === -1) { editingId = null; return; }
       const existing = countdowns[idx];
@@ -787,7 +968,6 @@
       return;
     }
 
-    // Neuer Countdown
     const record = {
       title,
       start,
@@ -810,6 +990,7 @@
   async function init() {
     db = await openDB();
     countdowns = await dbGetAll();
+    renderTemplateOptions();
     render();
     updateAddBtn();
 
