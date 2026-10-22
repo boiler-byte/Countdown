@@ -159,7 +159,7 @@
   }
   .card:hover { box-shadow: 0 0 36px rgba(255,0,230,.2); }
   .card .thumb {
-    width: 100%; height: 160px; object-fit: cover;
+    width: 100%; height: 200px; object-fit: cover;
     background: #08080f; display: block;
     border-bottom: 1px solid rgba(0,240,255,.15);
   }
@@ -171,7 +171,7 @@
     background: rgba(124,255,0,.15); color: var(--neon3);
     border: 1px solid rgba(124,255,0,.4); white-space: nowrap; text-transform: uppercase;
   }
-  .card .meta { font-size: .75rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+  .card .meta { font-size: .65rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
   .card .clock { font-size: 2.1rem; font-weight: 700; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
   .card .clock small { font-size: .8rem; color: var(--muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
   .card .status { font-size: 1.6rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
@@ -211,7 +211,6 @@
   .card .edit:hover { box-shadow: 0 0 12px var(--neon); }
 
   .empty { color: var(--muted); text-align: center; padding: 40px; grid-column: 1/-1; }
-  .time-left-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
 </style>
 </head>
 <body>
@@ -472,7 +471,7 @@
   /* ---------- Rendering ---------- */
   const cardsEl = document.getElementById('cards');
 
-  function render() {
+    function render() {
     cardsEl.innerHTML = '';
     if (countdowns.length === 0) {
       const div = document.createElement('div');
@@ -481,7 +480,10 @@
       cardsEl.appendChild(div);
       return;
     }
-    for (const c of countdowns) {
+    // Sortierung nach Endzeitpunkt aufsteigend:
+    // Wer zuerst fertig wird, steht oben – beendete Countdowns also ganz oben.
+    const sorted = [...countdowns].sort((a, b) => a.end - b.end);
+    for (const c of sorted) {
       cardsEl.appendChild(buildCard(c));
     }
     updateAllClocks();
@@ -524,13 +526,8 @@
 
     const meta = document.createElement('div');
     meta.className = 'meta';
-    meta.innerHTML = `<span>Start: ${fmt(c.start)}</span><span>Ende: ${fmt(c.end)}</span>`;
+    meta.innerHTML = `<span>${fmt(c.start)} - ${fmt(c.end)}</span>`;
     body.appendChild(meta);
-
-    const timeLeftLabel = document.createElement('div');
-    timeLeftLabel.className = 'time-left-label';
-    timeLeftLabel.textContent = 'Verbleibend';
-    body.appendChild(timeLeftLabel);
 
     const clock = document.createElement('div');
     clock.className = 'clock';
@@ -592,12 +589,10 @@
       if (!card) continue;
       const clock = card.querySelector('.clock');
       const status = card.querySelector('.status');
-      const label = card.querySelector('.time-left-label');
       const fill = card.querySelector('.progress-fill');
 
       if (now < c.start) {
         clock.style.display = 'none';
-        label.style.display = 'none';
         fill.parentElement.style.display = 'none';
         status.style.display = '';
         status.className = 'status waiting';
@@ -606,7 +601,6 @@
         status.title = 'Startet in ' + humanDiff(diff);
       } else if (now >= c.end) {
         clock.style.display = 'none';
-        label.style.display = 'none';
         fill.parentElement.style.display = 'none';
         status.style.display = '';
         status.className = 'status expired';
@@ -615,7 +609,6 @@
       } else {
         status.style.display = 'none';
         clock.style.display = '';
-        label.style.display = '';
         fill.parentElement.style.display = '';
         const remaining = c.end - now;
         clock.innerHTML = formatClock(remaining);
