@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Countdowns">
+  <title>Countdowns</title>
+  <defs>
+    <radialGradient id="bg" cx="28%" cy="18%" r="95%">
+      <stop offset="0%" stop-color="#1a0033"/>
+      <stop offset="45%" stop-color="#0a0a12"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <linearGradient id="neon" x1="15%" y1="5%" x2="85%" y2="95%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="50%" stop-color="#7cff00"/>
+      <stop offset="100%" stop-color="#ff00e6"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Full-Bleed-Hintergrund, keine Rundung -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <g transform="translate(256 256) scale(0.9) translate(-256 -256)">
+    <g filter="url(#glow)" fill="none" stroke="url(#neon)" stroke-linecap="round">
+      <path d="M226 96h60" stroke-width="26"/>
+      <path d="M256 130V78" stroke-width="26"/>
+      <circle cx="256" cy="286" r="146" stroke-width="24"/>
+      <path d="M256 286V186" stroke-width="22"/>
+      <path d="M256 286l74 46" stroke-width="18"/>
+    </g>
+    <circle cx="256" cy="286" r="15" fill="#ffffff"/>
+  </g>
+</svg>
